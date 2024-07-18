@@ -30,43 +30,51 @@ class XposedInit : IXposedHookLoadPackage {
         loadClass("com.android.launcher3.InvariantDeviceProfile")
             .findMethod { name == "parseAllGridOptions" }
             .hookAfter {
-                EzXHelperInit.initAppContext(it.args[0] as Context)
-                it.result = (it.result as List<*>).plus(get5x7GridOption())
+                Log.d(TAG, "here1")
+                val list = it.result as List<Any>
+                set5x7GridOption(list[0])
+//                it.result = arrayListOf(list[0], list[1])
             }
         loadClass("com.android.launcher3.InvariantDeviceProfile")
             .findMethod { name == "getPredefinedDeviceProfiles" }
-            .hookBefore {
-                if (it.args[1] != "pretty_normal") return@hookBefore
-                EzXHelperInit.initAppContext(it.args[0] as Context)
-                it.result = arrayListOf(get5x7DisplayOption())
+            .hookAfter {
+                if (it.args[1] == "normal") {
+                    val displayOption = (it.result as List<Any>)[0]
+                    set5x7DisplayOption(displayOption)
+                }
             }
+//        loadClass("com.android.launcher3.InvariantDeviceProfile\$GridOption")
+//            .findMethod { name == "isEnabled" }
+//            .hookBefore {
+//                it.result = true
+//            }
     }
 
-    private fun get5x7GridOption(): Any {
-        val gridOption = unsafe.allocateInstance(loadClass("com.android.launcher3.InvariantDeviceProfile\$GridOption"))
+    private fun set5x7GridOption(gridOption: Any) {
+//        val gridOption = unsafe.allocateInstance(loadClass("com.android.launcher3.InvariantDeviceProfile\$GridOption"))
         // public final String name;
-        gridOption.setField("name", "pretty_normal")
+//        gridOption.setField("name", "pretty_normal")
         // public final int numRows;
         gridOption.setField("numRows", 7)
         // public final int numColumns;
         gridOption.setField("numColumns", 5)
-        // public final int numSearchContainerColumns;
+//         public final int numSearchContainerColumns;
         gridOption.setField("numSearchContainerColumns", 5)
-        // public final int deviceCategory;
-        gridOption.setField("deviceCategory", 0 /* DEVICE_CATEGORY_PHONE */)
-        //
-        // private final int numFolderRows;
-        gridOption.setField("numFolderRows", 4)
-        // private final int numFolderColumns;
-        gridOption.setField("numFolderColumns", 4)
-        // private final @StyleRes int folderStyle;
-        gridOption.setField("folderStyle", getResByName("Folder5x5Style", "style"))
-        // private final @StyleRes int cellStyle;
-        gridOption.setField("cellStyle", getResByName("CellStyleDefault", "style"))
-        //
-        // private final @StyleRes int allAppsStyle;
-        gridOption.setField("allAppsStyle", getResByName("AllAppsStyleDefault", "style"))
-        // private final int numAllAppsColumns;
+//        // public final int deviceCategory;
+//        gridOption.setField("deviceCategory", 0 /* DEVICE_CATEGORY_PHONE */)
+//        //
+//        // private final int numFolderRows[];
+//        gridOption.setField("numFolderRows", intArrayOf(4, 4, 4, 4))
+//        // private final int numFolderColumns[];
+//        gridOption.setField("numFolderColumns", intArrayOf(4, 4, 4, 4))
+//        // private final @StyleRes int folderStyle;
+//        gridOption.setField("folderStyle", getResByName("Folder5x5Style", "style"))
+//        // private final @StyleRes int cellStyle;
+//        gridOption.setField("cellStyle", getResByName("CellStyleDefault", "style"))
+//        //
+//        // private final @StyleRes int allAppsStyle;
+//        gridOption.setField("allAppsStyle", getResByName("AllAppsStyleDefault", "style"))
+//        // private final int numAllAppsColumns;
         gridOption.setField("numAllAppsColumns", 5)
         // private final int numDatabaseAllAppsColumns;
         gridOption.setField("numDatabaseAllAppsColumns", 7)
@@ -79,29 +87,29 @@ class XposedInit : IXposedHookLoadPackage {
         gridOption.setField("hotseatColumnSpan", intArrayOf(5, 5, 5, 5))
         //
         // private final boolean[] inlineQsb = new boolean[COUNT_SIZES];
-        gridOption.setField("inlineQsb", booleanArrayOf(false, false, false, false))
+//        gridOption.setField("inlineQsb", booleanArrayOf(false, false, false, false))
         //
-        // private @DimenRes int inlineNavButtonsEndSpacing;
-        gridOption.setField("inlineNavButtonsEndSpacing", getResByName("taskbar_button_margin_default", "dimen"))
+//         private @DimenRes int inlineNavButtonsEndSpacing;
+//        gridOption.setField("inlineNavButtonsEndSpacing", getResByName("taskbar_button_margin_default", "dimen"))
         // private final String dbFile;
         gridOption.setField("dbFile", "launcher_5_by_7.db")
-        //
-        // private final int defaultLayoutId;
-        gridOption.setField("defaultLayoutId", getResByName("default_workspace_5x5", "xml"))
-        // private final int demoModeLayoutId;
-        gridOption.setField("demoModeLayoutId", getResByName("default_workspace_5x5", "xml"))
-        //
-        // private final boolean isScalable;
-        gridOption.setField("isScalable", true)
-        // private final int devicePaddingId;
-        gridOption.setField("devicePaddingId", -1)
-        return gridOption
+//        //
+//        // private final int defaultLayoutId;
+//        gridOption.setField("defaultLayoutId", getResByName("default_workspace_5x5", "xml"))
+//        // private final int demoModeLayoutId;
+//        gridOption.setField("demoModeLayoutId", getResByName("default_workspace_5x5", "xml"))
+//        //
+//        // private final boolean isScalable;
+//        gridOption.setField("isScalable", true)
+//        // private final int devicePaddingId;
+//        gridOption.setField("devicePaddingId", -1)
+//        return gridOption
     }
 
-    private fun get5x7DisplayOption(): Any {
-        val displayOption = unsafe.allocateInstance(loadClass("com.android.launcher3.InvariantDeviceProfile\$DisplayOption"))
+    private fun set5x7DisplayOption(displayOption: Any) {
+//        val displayOption = unsafe.allocateInstance(loadClass("com.android.launcher3.InvariantDeviceProfile\$DisplayOption"))
         // public final GridOption grid;
-        displayOption.setField("grid", get5x7GridOption())
+        set5x7GridOption(displayOption.getObject("grid"))
         //
         // private final float minWidthDps;
         displayOption.setField("minWidthDps", 387.0F)
@@ -154,7 +162,7 @@ class XposedInit : IXposedHookLoadPackage {
         //
         // private final boolean[] startAlignTaskbar = new boolean[COUNT_SIZES];
         displayOption.setField("startAlignTaskbar", booleanArrayOf(false, false, false, false))
-        return displayOption
+//        return displayOption
     }
 }
 
